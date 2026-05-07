@@ -1,0 +1,112 @@
+{
+  "training_distribution": "default",
+  "evaluation_profiles": [
+    "default",
+    "shifted_eval"
+  ],
+  "output_dir": "C:\\Users\\hp\\Desktop\\Acad\\ME 701\\Project\\outputs\\03_domain_shift_run",
+  "robust_training_summary": {
+    "design": {
+      "trigger_delay_ms": 25.892812428432716,
+      "pressure_early_kpa": 299.1635752962859,
+      "pressure_mid_kpa": 286.9501423968951,
+      "pressure_late_kpa": 102.73178961233124,
+      "vent_rate": 4.4122995260144755
+    },
+    "objective": 0.3859637008118073,
+    "hic_mean": 259.2311367862046,
+    "hic_std": 219.22388871505666,
+    "hic_cvar90": 751.1468560948155,
+    "chest_mean": 36.71087291005758,
+    "chest_std": 13.875906628223706,
+    "failure_rate_hic_gt_1000": 0.12,
+    "false_deployment_rate": 0.02,
+    "energy_mean": 0.11137399389174969
+  },
+  "shift_robust_training_summary": {
+    "design": {
+      "trigger_delay_ms": 20.061462830114507,
+      "pressure_early_kpa": 298.50101669914807,
+      "pressure_mid_kpa": 299.37577578121505,
+      "pressure_late_kpa": 104.20967511707137,
+      "vent_rate": 6.002239611434614
+    },
+    "objective": 0.611014730595351,
+    "hic_mean": 375.65015379537334,
+    "hic_std": 372.8507973041853,
+    "hic_cvar90": 1278.7009299783376,
+    "chest_mean": 40.151027392059994,
+    "chest_std": 14.889055614525763,
+    "failure_rate_hic_gt_1000": 0.225,
+    "false_deployment_rate": 0.0125,
+    "energy_mean": 0.16238881928931623
+  },
+  "shift_refined_training_summary": {
+    "design": {
+      "trigger_delay_ms": 25.392812428432716,
+      "pressure_early_kpa": 300.0,
+      "pressure_mid_kpa": 300.0,
+      "pressure_late_kpa": 120.73178961233124,
+      "vent_rate": 4.0
+    },
+    "objective": 0.6606767605173857,
+    "hic_mean": 399.2548197293466,
+    "hic_std": 363.134699157933,
+    "hic_cvar90": 1275.9923570496783,
+    "chest_mean": 43.734954691542995,
+    "chest_std": 14.744359113883098,
+    "failure_rate_hic_gt_1000": 0.240625,
+    "false_deployment_rate": 0.015625,
+    "energy_mean": 0.11851315412310019
+  },
+  "best_method_iid": "Shift-Refined Local Search",
+  "best_method_shifted": "Shift-Refined Local Search",
+  "robust_vs_initial_iid": {
+    "method": "Robust DE+SLSQP",
+    "hic_mean_percent": 11.343026110042628,
+    "hic_cvar90_percent": 12.954082750119174,
+    "chest_mean_percent": 1.0350509460621538,
+    "failure_rate_percent": 27.083333333333336,
+    "false_deployment_rate_percent": 0.0
+  },
+  "robust_vs_initial_shifted": {
+    "method": "Robust DE+SLSQP",
+    "hic_mean_percent": 15.083749976816568,
+    "hic_cvar90_percent": 12.801619057137088,
+    "chest_mean_percent": 0.4550341932135841,
+    "failure_rate_percent": 34.37500000000001,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_robust_vs_initial_iid": {
+    "method": "Shift-Robust DRO",
+    "hic_mean_percent": 8.226195713636262,
+    "hic_cvar90_percent": 11.953447544752065,
+    "chest_mean_percent": 1.3865258433295606,
+    "failure_rate_percent": 20.83333333333333,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_robust_vs_initial_shifted": {
+    "method": "Shift-Robust DRO",
+    "hic_mean_percent": 12.892577277455453,
+    "hic_cvar90_percent": 14.168527706039885,
+    "chest_mean_percent": 0.9417188730030841,
+    "failure_rate_percent": 21.875000000000004,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_refined_vs_initial_iid": {
+    "method": "Shift-Refined Local Search",
+    "hic_mean_percent": 12.840879524916934,
+    "hic_cvar90_percent": 14.812682360320027,
+    "chest_mean_percent": 0.24213668574718553,
+    "failure_rate_percent": 31.25,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_refined_vs_initial_shifted": {
+    "method": "Shift-Refined Local Search",
+    "hic_mean_percent": 16.200119795672343,
+    "hic_cvar90_percent": 12.95122628264176,
+    "chest_mean_percent": -0.1484268309055587,
+    "failure_rate_percent": 36.45833333333333,
+    "false_deployment_rate_percent": 0.0
+  }
+}

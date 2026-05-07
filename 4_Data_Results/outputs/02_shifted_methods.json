@@ -1,0 +1,208 @@
+{
+  "methods": [
+    {
+      "name": "Initial Design",
+      "method_type": "reference",
+      "runtime_s": 0.0,
+      "summary": {
+        "objective": 0.8918155587650609,
+        "hic_mean": 444.16120697821304,
+        "hic_std": 371.336732825087,
+        "hic_cvar90": 1312.5456943572783,
+        "chest_mean": 44.132956099901314,
+        "chest_std": 13.76250715542123,
+        "failure_rate_hic_gt_1000": 0.32,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.49981260510492137
+      },
+      "design": {
+        "trigger_delay_ms": 18.0,
+        "pressure_early_kpa": 220.0,
+        "pressure_mid_kpa": 190.0,
+        "pressure_late_kpa": 140.0,
+        "vent_rate": 18.0
+      },
+      "design_mean": {
+        "trigger_delay_ms": 18.0,
+        "pressure_early_kpa": 220.0,
+        "pressure_mid_kpa": 190.0,
+        "pressure_late_kpa": 140.0,
+        "vent_rate": 18.0
+      }
+    },
+    {
+      "name": "Deterministic SQP",
+      "method_type": "baseline_fixed",
+      "runtime_s": 0.062343800003873184,
+      "summary": {
+        "objective": 0.8915343681249377,
+        "hic_mean": 443.95909109411986,
+        "hic_std": 370.9578234998885,
+        "hic_cvar90": 1311.0246510926333,
+        "chest_mean": 44.1334652621278,
+        "chest_std": 13.762625922862517,
+        "failure_rate_hic_gt_1000": 0.32,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.4995620540213675
+      },
+      "design": {
+        "trigger_delay_ms": 18.021484391552306,
+        "pressure_early_kpa": 219.99999997494885,
+        "pressure_mid_kpa": 189.99999997880875,
+        "pressure_late_kpa": 139.99999958417143,
+        "vent_rate": 17.999997748162144
+      },
+      "design_mean": {
+        "trigger_delay_ms": 18.021484391552306,
+        "pressure_early_kpa": 219.99999997494885,
+        "pressure_mid_kpa": 189.99999997880875,
+        "pressure_late_kpa": 139.99999958417143,
+        "vent_rate": 17.999997748162144
+      }
+    },
+    {
+      "name": "Grid Search",
+      "method_type": "baseline_fixed",
+      "runtime_s": 74.180099899997,
+      "summary": {
+        "objective": 0.7377613181638718,
+        "hic_mean": 401.87180495422217,
+        "hic_std": 322.89698420640724,
+        "hic_cvar90": 1153.815194030842,
+        "chest_mean": 43.50161746192174,
+        "chest_std": 13.67788986470327,
+        "failure_rate_hic_gt_1000": 0.2866666666666667,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.1128362493078097
+      },
+      "design": {
+        "trigger_delay_ms": 16.0,
+        "pressure_early_kpa": 300.0,
+        "pressure_mid_kpa": 300.0,
+        "pressure_late_kpa": 100.0,
+        "vent_rate": 4.0
+      },
+      "design_mean": {
+        "trigger_delay_ms": 16.0,
+        "pressure_early_kpa": 300.0,
+        "pressure_mid_kpa": 300.0,
+        "pressure_late_kpa": 100.0,
+        "vent_rate": 4.0
+      }
+    },
+    {
+      "name": "MPC-Inspired Policy",
+      "method_type": "adaptive_policy",
+      "runtime_s": 0.8929454000026453,
+      "summary": {
+        "objective": 0.7665374788900396,
+        "hic_mean": 412.986344457071,
+        "hic_std": 331.57280156270366,
+        "hic_cvar90": 1189.619729405183,
+        "chest_mean": 44.704215808739576,
+        "chest_std": 14.030706498682605,
+        "failure_rate_hic_gt_1000": 0.2733333333333333,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.6487347995214683
+      },
+      "design": null,
+      "design_mean": {
+        "trigger_delay_ms": 14.451374667931777,
+        "pressure_early_kpa": 157.17886067338674,
+        "pressure_mid_kpa": 268.39025685949065,
+        "pressure_late_kpa": 177.30147969920753,
+        "vent_rate": 19.39256122917375
+      }
+    },
+    {
+      "name": "Robust DE+SLSQP",
+      "method_type": "robust_fixed",
+      "runtime_s": 200.50661590001255,
+      "summary": {
+        "objective": 0.5891450768901271,
+        "hic_mean": 377.16504102360864,
+        "hic_std": 318.3390853952048,
+        "hic_cvar90": 1144.5185946148047,
+        "chest_mean": 43.93213605917082,
+        "chest_std": 14.04562165331816,
+        "failure_rate_hic_gt_1000": 0.21,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.12002347440562634
+      },
+      "design": {
+        "trigger_delay_ms": 25.892812428432716,
+        "pressure_early_kpa": 299.1635752962859,
+        "pressure_mid_kpa": 286.9501423968951,
+        "pressure_late_kpa": 102.73178961233124,
+        "vent_rate": 4.4122995260144755
+      },
+      "design_mean": {
+        "trigger_delay_ms": 25.892812428432716,
+        "pressure_early_kpa": 299.1635752962859,
+        "pressure_mid_kpa": 286.9501423968951,
+        "pressure_late_kpa": 102.73178961233124,
+        "vent_rate": 4.4122995260144755
+      }
+    },
+    {
+      "name": "Shift-Robust DRO",
+      "method_type": "robust_shift_aware",
+      "runtime_s": 342.4226985999994,
+      "summary": {
+        "objective": 0.6581193297735023,
+        "hic_mean": 386.89738013206806,
+        "hic_std": 314.0168131903473,
+        "hic_cvar90": 1126.5772939978337,
+        "chest_mean": 43.71734772309438,
+        "chest_std": 13.840944671148705,
+        "failure_rate_hic_gt_1000": 0.25,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.16890532235235223
+      },
+      "design": {
+        "trigger_delay_ms": 20.061462830114507,
+        "pressure_early_kpa": 298.50101669914807,
+        "pressure_mid_kpa": 299.37577578121505,
+        "pressure_late_kpa": 104.20967511707137,
+        "vent_rate": 6.002239611434614
+      },
+      "design_mean": {
+        "trigger_delay_ms": 20.061462830114507,
+        "pressure_early_kpa": 298.50101669914807,
+        "pressure_mid_kpa": 299.37577578121505,
+        "pressure_late_kpa": 104.20967511707137,
+        "vent_rate": 6.002239611434614
+      }
+    },
+    {
+      "name": "Shift-Refined Local Search",
+      "method_type": "robust_local_refinement",
+      "runtime_s": 85.11543039999378,
+      "summary": {
+        "objective": 0.5787435375499872,
+        "hic_mean": 372.20655936183834,
+        "hic_std": 317.47271317489896,
+        "hic_cvar90": 1142.5549314179957,
+        "chest_mean": 44.19846124802534,
+        "chest_std": 14.109766494078553,
+        "failure_rate_hic_gt_1000": 0.20333333333333334,
+        "false_deployment_rate": 0.01,
+        "energy_mean": 0.11934393615505332
+      },
+      "design": {
+        "trigger_delay_ms": 25.392812428432716,
+        "pressure_early_kpa": 300.0,
+        "pressure_mid_kpa": 300.0,
+        "pressure_late_kpa": 120.73178961233124,
+        "vent_rate": 4.0
+      },
+      "design_mean": {
+        "trigger_delay_ms": 25.392812428432716,
+        "pressure_early_kpa": 300.0,
+        "pressure_mid_kpa": 300.0,
+        "pressure_late_kpa": 120.73178961233124,
+        "vent_rate": 4.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+method,design_type,trigger_delay_ms,pressure_early_kpa,pressure_mid_kpa,pressure_late_kpa,vent_rate
+Initial Design,fixed,18.0,220.0,190.0,140.0,18.0
+Deterministic SQP,fixed,18.021,220.0,190.0,140.0,18.0
+Grid Search,fixed,16.0,300.0,300.0,100.0,4.0
+MPC-Inspired Policy,adaptive_mean,17.168,144.645,250.508,164.768,21.898
+Robust DE+SLSQP,fixed,25.893,299.164,286.95,102.732,4.412
+Shift-Robust DRO,fixed,20.061,298.501,299.376,104.21,6.002
+Shift-Refined Local Search,fixed,25.393,300.0,300.0,120.732,4.0

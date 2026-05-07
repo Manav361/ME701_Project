@@ -1,0 +1,166 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{url}
+
+\title{Stochastic Optimization of Airbag Deployment Parameters Under Crash Uncertainty}
+
+\author{
+\IEEEauthorblockN{Jaladhi Joshi(22B0994) and Manav Agrawal(22B1253)}
+\IEEEauthorblockA{ME 701 Course Project}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Airbag deployment is usually evaluated under a limited set of prescribed crash cases, but real crashes vary in speed, direction, occupant position, belt usage, and sensor response. This project formulates airbag deployment as a stochastic engineering design problem. A reduced-order occupant-restraint simulator is used to compare nominal, grid-based, adaptive, stochastic robust, and distribution-shift-aware optimization methods. The optimized variables are trigger delay, three staged pressure levels, and vent rate. Performance is evaluated using mean head injury criterion (HIC), HIC tail risk, chest deflection, deployment energy, HIC failure rate, and false deployment rate. In the selected final run, the shift-refined local-search method reduced shifted-distribution mean HIC from 444.16 to 372.21 and reduced the HIC failure rate from 32.00\% to 20.33\% relative to the initial design.
+\end{abstract}
+
+\begin{IEEEkeywords}
+airbag deployment, stochastic optimization, robust design, crash safety, HIC, CVaR
+\end{IEEEkeywords}
+
+\section{Introduction}
+Vehicle restraint systems must perform well across a wide range of crash conditions. A deployment setting that is acceptable for a single nominal frontal crash may perform poorly when the impact speed, occupant posture, belt usage, crash angle, or sensor timing changes. Therefore, the design problem is naturally stochastic: the deployment algorithm should be selected before the crash and should provide good expected and tail-risk performance over many possible scenarios.
+
+This project develops a simplified but reproducible computational workflow for airbag deployment optimization. The objective is not to certify an industrial airbag design. Instead, the goal is to compare optimization strategies on a controlled reduced-order model and to study how uncertainty-aware methods differ from nominal tuning.
+
+\section{Problem Formulation}
+The design vector is
+\begin{equation}
+x = [d, p_e, p_m, p_l, v]^T,
+\end{equation}
+where $d$ is trigger delay in ms, $p_e$, $p_m$, and $p_l$ are early, mid, and late pressure levels in kPa, and $v$ is the vent rate. A random crash scenario is denoted by $\xi$. Each scenario includes crash speed, impact angle, occupant seating offset, seatbelt usage, sensor delay, and crash pulse duration.
+
+For each pair $(x,\xi)$, the simulator produces injury and performance metrics: $\mathrm{HIC}(x,\xi)$, chest deflection $D_c(x,\xi)$, deployment energy $E(x,\xi)$, HIC failure indicator $I_f(x,\xi)$, and false deployment indicator $I_{fd}(x,\xi)$. The main design goal is to reduce injury risk while avoiding excessive deployment energy and false deployment.
+
+\section{Mathematical Model}
+The stochastic optimization problem is written as
+\begin{align}
+\min_{x \in \mathcal{X}} \quad
+J(x) = &\; w_1 \mathbb{E}_{\xi}[\mathrm{HIC}(x,\xi)]
++ w_2 \mathbb{E}_{\xi}[D_c(x,\xi)] \nonumber\\
+&+ w_3 \mathbb{E}_{\xi}[E(x,\xi)]
++ w_4 \mathrm{CVaR}_{0.90}(\mathrm{HIC}(x,\xi)) \nonumber\\
+&+ \lambda_1 \max(0,\Pr[\mathrm{HIC}>1000]-\alpha)^2 \nonumber\\
+&+ \lambda_2 \max(0,\Pr[I_{fd}=1]-\beta)^2 .
+\end{align}
+The implemented objective weights are $w_1=0.55$, $w_2=0.25$, $w_3=0.08$, and $w_4=0.12$. The penalty terms discourage high HIC failure rate and false deployment rate. The design constraints are simple bound constraints:
+\begin{align}
+5 \leq d \leq 40, \\
+100 \leq p_e,p_m,p_l \leq 300,\\
+4 \leq v \leq 45.
+\end{align}
+The optimization is simulation-based, so expectations and probabilities are estimated using Monte Carlo crash scenarios.
+
+\section{Simulation Model}
+The simulator is a reduced-order occupant-restraint model. It includes one-dimensional occupant forward excursion, belt slack, belt stiffness and damping, pretensioner action, airbag pressure build-up, venting, airbag contact force, and hard-stop contact. The head acceleration response is filtered and used to compute a HIC proxy over a 36 ms window. Chest deflection is modeled as a proxy response to belt, bag, and hard-stop forces.
+
+The uncertainty model samples crash conditions rather than using a fixed deterministic crash. The default profile represents the main training distribution. A shifted evaluation profile increases crash severity through higher speeds, larger obliquity, larger seating offsets, lower belt usage, and noisier sensing. This shift is used to test whether a method overfits to the default distribution.
+
+\section{Methodology and Justification}
+Six methods were compared. The initial design is a reference setting used for improvement calculations. Deterministic SQP is a local optimizer applied to a nominal crash case; it is useful as a conventional baseline but is expected to be weak under uncertainty. Grid search provides a transparent coarse enumeration of the design space. The MPC-inspired policy is a heuristic adaptive rule that changes settings based on crash severity indicators. Robust DE+SLSQP uses Differential Evolution for global exploration followed by SLSQP local refinement, which is appropriate because the simulator is nonlinear and derivative-free at the workflow level. Shift-refined local search starts from the robust design and refines using shifted scenarios to directly target distribution-shift performance.
+
+\section{Results}
+The final selected result bundle is \texttt{outputs/03\_domain\_shift\_run}. Table~\ref{tab:iid} summarizes in-distribution evaluation. Table~\ref{tab:shifted} summarizes shifted-distribution evaluation.
+
+\begin{table}[!t]
+\caption{In-Distribution Evaluation}
+\label{tab:iid}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Method & Obj. & Mean HIC & Fail. \%\\
+\midrule
+Initial & 0.431 & 259.89 & 16.00\\
+Deterministic SQP & 0.431 & 259.85 & 16.00\\
+Grid Search & 0.379 & 249.09 & 14.33\\
+MPC-Inspired & 0.415 & 247.59 & 12.67\\
+Robust DE+SLSQP & 0.356 & 230.41 & 11.67\\
+Shift-Robust DRO & 0.367 & 238.52 & 12.67\\
+Shift-Refined & \textbf{0.352} & \textbf{226.52} & \textbf{11.00}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\caption{Shifted-Distribution Evaluation}
+\label{tab:shifted}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Method & Obj. & Mean HIC & Fail. \%\\
+\midrule
+Initial & 0.892 & 444.16 & 32.00\\
+Deterministic SQP & 0.891 & 443.96 & 32.00\\
+Grid Search & 0.738 & 401.87 & 28.67\\
+MPC-Inspired & 0.766 & 412.99 & 27.33\\
+Robust DE+SLSQP & 0.589 & 377.17 & 21.00\\
+Shift-Robust DRO & 0.658 & 386.90 & 25.00\\
+Shift-Refined & \textbf{0.579} & \textbf{372.21} & \textbf{20.33}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\caption{Best Shift-Refined Fixed Design}
+\label{tab:design}
+\centering
+\begin{tabular}{lc}
+\toprule
+Variable & Value\\
+\midrule
+Trigger delay & 25.39 ms\\
+Early pressure & 300.00 kPa\\
+Mid pressure & 300.00 kPa\\
+Late pressure & 120.73 kPa\\
+Vent rate & 4.00\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The deterministic SQP solution is almost identical to the initial design, indicating that nominal single-scenario optimization is not sufficient for this problem. Grid search improves both distributions, but the robust and shift-refined methods provide the strongest performance. The shift-refined method is best on both evaluation profiles. On shifted evaluation, it reduces mean HIC by 16.2\% and failure rate by 36.5\% relative to the initial design.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{02_shifted_method_comparison.png}
+\caption{Method comparison under shifted evaluation.}
+\label{fig:shifted-comparison}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{02_shifted_tradeoff_map.png}
+\caption{Tradeoff between injury and energy metrics for shifted evaluation.}
+\label{fig:tradeoff}
+\end{figure}
+
+\section{Discussion}
+The strongest designs tend to use high early and mid pressure with low venting. In the reduced-order model, this produces stronger early restraint and reduces high-HIC tail outcomes. However, the best design does not simply maximize every pressure stage: the late pressure remains lower than the early and mid stages, which suggests that pressure timing matters as well as total aggressiveness.
+
+The shifted-distribution results are more important than the in-distribution results because they test whether a design remains useful outside the training profile. The robust DE+SLSQP method already improves shifted performance, but the shift-refined local search gives the best final objective and failure rate. This supports the project hypothesis that uncertainty-aware and distribution-shift-aware optimization are more appropriate than nominal tuning for restraint deployment.
+
+\section{Limitations}
+The model is intentionally simplified. It does not include a validated finite-element vehicle model, a multibody occupant model, detailed airbag fabric dynamics, real accident database calibration, occupant anthropometry variation, or full side-impact geometry. HIC and chest deflection are proxy metrics, not certified regulatory outputs. The shifted distribution is designed for algorithm testing and is not a statistically validated real-world crash distribution. Therefore, the results should be interpreted as a comparison of optimization methods within the project simulator, not as a real-world airbag safety certification.
+
+\section{Conclusion}
+This project shows that stochastic and shift-aware optimization can substantially improve airbag deployment parameters in a reduced-order crash model. The final shift-refined design outperforms nominal and baseline methods on both default and shifted evaluation scenarios. The main technical lesson is that robustness to uncertainty and distribution shift should be treated as a central part of restraint-system design rather than as an afterthought after nominal tuning.
+
+\section*{Reproducibility}
+The code entry point is \texttt{3\_Code/src/run\_experiment.py}. Running the script regenerates numbered output folders containing comparison tables, design tables, scenario-level metrics, and figures. The final selected outputs used in this report are included in \texttt{4\_Data\_Results/outputs/}.
+
+\begin{thebibliography}{1}
+\bibitem{storn}
+R. Storn and K. Price, ``Differential evolution--a simple and efficient heuristic for global optimization over continuous spaces,'' \emph{Journal of Global Optimization}, 1997.
+\bibitem{rockafellar}
+R. T. Rockafellar and S. Uryasev, ``Optimization of conditional value-at-risk,'' \emph{Journal of Risk}, 2000.
+\bibitem{nhtsa}
+NHTSA, ``Development of improved injury criteria for the assessment of advanced automotive restraint systems,'' 1999.
+\bibitem{bental}
+A. Ben-Tal, L. El Ghaoui, and A. Nemirovski, \emph{Robust Optimization}. Princeton University Press, 2009.
+\end{thebibliography}
+
+\end{document}

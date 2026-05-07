@@ -1,0 +1,8 @@
+method,type,runtime_s,objective,hic_mean,hic_std,hic_cvar90,chest_mean_mm,chest_std_mm,failure_rate_pct,false_deployment_rate_pct,energy_mean
+Initial Design,reference,0.0,0.4312,259.89,248.29,811.4,35.23,14.91,16.0,1.67,0.4423
+Deterministic SQP,baseline_fixed,0.062,0.4312,259.85,248.25,811.4,35.23,14.91,16.0,1.67,0.4422
+Grid Search,baseline_fixed,74.18,0.379,249.09,229.38,752.15,34.6,14.67,14.33,1.67,0.1006
+MPC-Inspired Policy,adaptive_policy,0.874,0.4153,247.59,225.72,751.79,35.69,15.18,12.67,1.67,0.596
+Robust DE+SLSQP,robust_fixed,200.507,0.3561,230.41,216.6,706.29,34.86,14.88,11.67,1.67,0.1065
+Shift-Robust DRO,robust_shift_aware,342.423,0.367,238.52,218.31,714.41,34.74,14.76,12.67,1.67,0.1503
+Shift-Refined Local Search,robust_local_refinement,85.115,0.3525,226.52,210.64,691.21,35.14,14.98,11.0,1.67,0.1059

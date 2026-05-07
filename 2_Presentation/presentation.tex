@@ -1,0 +1,702 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{multicol}
+
+\title{Stochastic Optimization of Airbag Deployment Parameters}
+\subtitle{ME 701 Course Project}
+\author{Jaladhi Joshi (22B0994) \and Manav Agrawal (22B1253)}
+\institute{ME 701}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Problem Statement and Formulation}
+
+\begin{frame}{Problem Statement}
+  \begin{itemize}
+    \item Goal: choose airbag deployment parameters that reduce injury risk under uncertain crash conditions.
+    \item We optimize a fixed airbag deployment algorithm before the crash, then test it on many random crash scenarios.
+  \end{itemize}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Algorithm variables}
+      \begin{itemize}
+        \item trigger delay (ms)
+        \item early-stage pressure (kPa)
+        \item mid-stage pressure (kPa)
+        \item late-stage pressure (kPa)
+        \item vent rate
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Main uncertainties}
+      \begin{itemize}
+        \item crash speed and pulse duration
+        \item impact angle
+        \item occupant seat offset
+        \item belt usage
+        \item sensing / trigger bias and delay
+      \end{itemize}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Mathematical Formulation}
+  \begin{block}{Stochastic algorithm-optimization problem}
+    \[
+    \min_{x \in \mathcal{X}}
+    \Bigl(
+    w_1 \, \mathbb{E}[\mathrm{HIC}]
+    + w_2 \, \mathbb{E}[D_{\text{chest}}]
+    + w_3 \, \mathbb{E}[E_{\text{deploy}}]
+    + w_4 \, \mathrm{CVaR}_{90}(\mathrm{HIC})
+    \Bigr)
+    \]
+    where $x = [d, p_e, p_m, p_l, v]$ is the deployment algorithm.
+  \end{block}
+
+  \begin{itemize}
+    \item $\mathbb{E}[\mathrm{HIC}]$: average head injury risk over stochastic scenarios.
+    \item $\mathbb{E}[D_{\text{chest}}]$: average chest deflection proxy.
+    \item $\mathbb{E}[E_{\text{deploy}}]$: average deployment energy used by the inflator / vent system.
+    \item $\mathrm{CVaR}_{90}(\mathrm{HIC})$: tail-risk term that penalizes the worst 10\% HIC outcomes.
+    \item Additional penalties are added when:
+    \begin{itemize}
+      \item failure rate for HIC exceeds the desired limit
+      \item false deployment rate becomes too high
+      \item average chest deflection becomes too high
+    \end{itemize}
+    % \item This turns the problem into a risk-aware stochastic optimization problem rather than a nominal single-case tuning task.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{How Crash Scenarios Are Sampled}
+  \scriptsize
+  \begin{block}{Scenario generation idea}
+    Each crash realization is sampled from a joint probability distribution over uncertain parameters,
+    \[
+    \omega = (v_{\mathrm{crash}},\, T_{\mathrm{pulse}},\, \theta,\, s_{\mathrm{seat}},\, b,\, \delta_{\mathrm{sensor}},\, \delta_{\mathrm{trigger}})
+    \sim P_{\mathrm{default}} \text{ or } P_{\mathrm{shift}}
+    \]
+    and the simulator evaluates one loss value \(J(x;\omega)\) for the chosen algorithm \(x\).
+  \end{block}
+
+  \vspace{0.3em}
+  \[
+  \delta_{\mathrm{trigger}} \sim \mathcal{N}(0,\sigma_{\mathrm{trigger}}^2),
+  \qquad
+  T_{\mathrm{pulse}} \sim \text{clipped Normal},
+  \qquad
+  \delta_{\mathrm{sensor}} \sim \text{clipped OU noise}
+  \]
+  \[
+  \mathbb{E}[J(x)] \approx \frac{1}{N}\sum_{i=1}^{N} J(x;\omega_i), \qquad \omega_i \sim P_{\mathrm{default}} \text{ or } P_{\mathrm{shift}}
+  \]
+\end{frame}
+
+\begin{frame}{Evaluation Profiles}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{block}{Default profile}
+      \begin{itemize}
+        \item baseline training / evaluation distribution
+        \item moderate crash severity mix
+        \item higher belt-use probability
+        \item smaller occupant-offset bias
+      \end{itemize}
+    \end{block}
+
+    \column{0.49\textwidth}
+    \begin{block}{Shifted profile}
+      \begin{itemize}
+        \item harsher out-of-distribution test
+        \item higher speeds and more obliquity
+        \item lower belt-use probability
+        \item larger occupant-offset bias
+        \item noisier sensing and shorter pulses
+      \end{itemize}
+    \end{block}
+  \end{columns}
+
+  \vspace{0.4em}
+  \begin{alertblock}{Why this matters}
+    An algorithm that looks good on the default distribution may degrade when crash statistics shift.
+  \end{alertblock}
+\end{frame}
+
+\section{Methodology}
+
+\begin{frame}{Methodology Pipeline}
+  \begin{enumerate}
+    \item Generate many crash realizations representing uncertainty in impact severity, occupant state, and sensing.
+    \item For each candidate algorithm, simulate crash dynamics over the full impact event.
+    \item Convert the resulting traces into injury and efficiency metrics such as HIC, chest deflection, and energy.
+    \item Aggregate those scenario-level outcomes into a stochastic objective.
+    \item Use optimization or policy evaluation to obtain one algorithm from each baseline or proposed approach.
+    \item Evaluate every algorithm on common iid and shifted test sets for a fair comparison.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Training and Evaluation Setup}
+  \begin{itemize}
+    \item Training scenarios:
+    \begin{itemize}
+      \item 500 default scenarios for robust training
+      \item 300 shifted scenarios for shift-aware training
+    \end{itemize}
+    \item Evaluation scenarios:
+    \begin{itemize}
+      \item 3000 iid scenarios
+      \item 3000 shifted scenarios
+    \end{itemize}
+    \item Optimization strategy:
+    \begin{itemize}
+      \item global search for broad exploration
+      \item local refinement for final tuning
+      \item additional shift-focused local refinement for the final algorithm
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Simulator and Simulation Model}
+
+\begin{frame}{How We Simulated the System}
+  \begin{itemize}
+    \item Reduced-order 1D forward occupant model.
+    \item Separate torso and head states are simulated over time.
+    \item Crash pulse drives the occupant forward.
+    \item Seatbelt model includes slack, damping, load limiting, and pretensioner action.
+    \item Airbag model includes delayed triggering, staged target pressure, inflation lag, and vent losses.
+    \item Contact terms model torso/head engagement with the bag and a front hard stop.
+  \end{itemize}
+
+  \begin{block}{Output traces}
+    The simulator returns time histories for displacement, acceleration, pressure, belt force, bag force, hard-stop force, chest deflection, HIC proxy, and deployment energy.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Simulator Information}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+    \begin{block}{Physics approximations}
+      \begin{itemize}
+        \item 1D occupant excursion
+        \item simplified crash pulse
+        \item proxy chest and head injury measures
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Metrics used}
+      \begin{itemize}
+        \item mean HIC
+        \item HIC CVaR90
+        \item chest deflection
+        \item HIC failure rate
+        \item false deployment rate
+        \item deployment energy
+      \end{itemize}
+    \end{block}
+  \end{columns}
+
+  \vspace{0.2em}
+  \begin{block}{Failure-rate definition}
+    \[
+    \mathrm{FailRate} = \frac{1}{N}\sum_{i=1}^{N}\mathbf{1}\{\mathrm{HIC}_i > H_{\mathrm{crit}}\}\times 100\%
+    \]
+    where \(H_{\mathrm{crit}}\) is the chosen HIC safety threshold used in evaluation.
+  \end{block}
+
+  \vspace{0.4em}
+  \begin{alertblock}{Important note}
+    This is a reduced-order research simulator for algorithm comparison, not a certified crash-safety model.
+  \end{alertblock}
+\end{frame}
+
+\section{All Algorithms}
+
+\begin{frame}{All Algorithms Explained}
+  \begin{table}
+    \centering
+    \scriptsize
+    \begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{8.4cm}}
+      \toprule
+      Algorithm & Idea \\
+      \midrule
+      Initial Design & Hand-chosen reference airbag algorithm. \\
+      Deterministic SQP & Single nominal crash case optimized with SLSQP. \\
+      Grid Search & Coarse discrete search over the algorithm space followed by local refinement on the best grid region. \\
+      MPC-Inspired Policy & Adaptive heuristic policy that changes deployment settings using scenario severity indicators. \\
+      Robust DE+SLSQP & Main stochastic optimizer using differential evolution for global exploration and SLSQP for local refinement. \\
+      Shift-Refined Local Search & Starts from the robust algorithm and performs fine local coordinate refinement on a larger shifted Monte Carlo sample. \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+\begin{frame}{Algorithm 1: Initial Design}
+  \small
+  \begin{block}{Purpose}
+    The initial design is the reference point used to measure improvement.
+  \end{block}
+
+  \begin{itemize}
+    \item It is a manually chosen fixed deployment profile.
+    \item No optimization is performed for this algorithm.
+    \item Algorithm values:
+    \begin{itemize}
+      \item delay: 18 ms
+      \item pressure profile: 220 / 190 / 140 kPa
+      \item vent rate: 18
+    \end{itemize}
+    \item How these values were chosen:
+    \begin{itemize}
+      \item selected by engineering judgement as a feasible mid-range reference inside the allowed bounds
+      \item uses moderate trigger delay, high early pressure, then decreasing mid/late pressure to represent a conventional staged inflator profile
+      \item uses a moderate vent rate so the bag is neither too stiff nor too soft
+    \end{itemize}
+    \item Mathematical view:
+    \[
+    x_{\mathrm{init}} = [18,\ 220,\ 190,\ 140,\ 18]
+    \]
+    \[
+    \text{Reference baseline: evaluate } J(x_{\mathrm{init}})
+    \]
+    \item It helps answer: how much better are the optimization algorithms than a reasonable starting point?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Algorithm 2: Deterministic SQP}
+  \small
+  \begin{block}{Purpose}
+    Deterministic SQP tests what happens if we optimize only for a single nominal crash case.
+  \end{block}
+
+  \begin{itemize}
+    \item Uses one representative crash scenario instead of a stochastic scenario set.
+    \item Optimizer: SLSQP with bound constraints on delay, pressures, and vent rate.
+    \item Mathematical view:
+    \[
+    x_{\mathrm{nom}}
+    =
+    \arg\min_{x \in \mathcal{X}} J(x;\omega_{\mathrm{nom}})
+    \]
+    where \(\omega_{\mathrm{nom}}\) is one nominal crash realization and SLSQP performs local constrained optimization.
+    \item Advantage:
+    \begin{itemize}
+      \item very fast
+      \item easy to interpret
+    \end{itemize}
+    \item Limitation:
+    \begin{itemize}
+      \item weak under uncertainty because it does not see rare or shifted crash scenarios
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Algorithm 3: Grid Search}
+  \small
+  \begin{block}{Purpose}
+    Grid Search provides a strong non-gradient baseline over the fixed algorithm space.
+  \end{block}
+
+  \begin{itemize}
+    \item Searches a coarse grid over delay, pressure stages, and vent rate.
+    \item Then performs a small refinement around the best coarse grid point.
+    \item Mathematical view:
+    \[
+    \mathcal{G} \subset \mathcal{X}, \qquad
+    x_{\mathrm{grid}} = \arg\min_{x \in \mathcal{G}} \hat{J}(x)
+    \]
+    followed by local refinement over a neighborhood \(\mathcal{N}(x_{\mathrm{grid}})\).
+    \item Advantage:
+    \begin{itemize}
+      \item robust to non-smooth simulation behavior
+      \item less likely to get stuck in one gradient basin
+    \end{itemize}
+    \item Limitation:
+    \begin{itemize}
+      \item expensive as dimensionality or grid resolution increases
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Algorithm 4: MPC-Inspired Policy}
+  \small
+  \begin{block}{Purpose}
+    This algorithm is a simple adaptive baseline: instead of using one fixed airbag setting for every crash, it changes the settings based on crash severity.
+  \end{block}
+
+  \begin{itemize}
+    \item It looks at a few important crash features, such as vehicle speed, crash angle, seat position, belt status, and sensor delay.
+    \item Using these inputs, it chooses a trigger delay, pressure profile, and vent rate.
+    \item Mathematical view:
+    \[
+    z(\omega) = [v,\ |\theta|,\ s_{\mathrm{seat}},\ \mathbf{1}_{\mathrm{unbelted}},\ \delta_{\mathrm{sensor}}]
+    \]
+    \[
+    x(\omega) = \pi(z(\omega))
+    \]
+    where \(\pi\) is a hand-designed function that converts crash features into deployment settings.
+    \item Advantage:
+    \begin{itemize}
+      \item adapts the airbag response to each scenario
+    \end{itemize}
+    \item Limitation:
+    \begin{itemize}
+      \item it is still heuristic, not a true MPC optimization
+      \item performance depends on how good the hand-designed rules are
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Algorithm 5: Robust DE+SLSQP}
+  \small
+  \begin{block}{Purpose}
+    This is the main stochastic robust optimizer.
+  \end{block}
+
+  \begin{itemize}
+    \item Stage 1: Differential Evolution explores the global algorithm space.
+    \item Stage 2: SLSQP locally refines the best global candidate.
+    \item Mathematical view:
+    \[
+    x_{\mathrm{rob}}
+    =
+    \arg\min_{x \in \mathcal{X}}
+    \left[
+    w_1 \mathbb{E}[\mathrm{HIC}]
+    + w_2 \mathbb{E}[D_{\mathrm{chest}}]
+    + w_3 \mathbb{E}[E_{\mathrm{deploy}}]
+    + w_4 \mathrm{CVaR}_{90}(\mathrm{HIC})
+    \right]
+    \]
+    with Monte Carlo estimation over training scenarios, DE for exploration, and SLSQP for local refinement.
+    \item Advantage:
+    \begin{itemize}
+      \item handles nonconvexity better than a single local optimizer
+      \item directly optimizes expected safety and HIC tail risk
+    \end{itemize}
+    \item Limitation:
+    \begin{itemize}
+      \item trained mostly on the default profile, so it may not be fully shift-aware
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}{Algorithm 6: Shift-Robust DRO}
+%   \begin{block}{Purpose}
+%     Shift-Robust DRO explicitly adds shifted-distribution training scenarios.
+%   \end{block}
+
+%   \begin{itemize}
+%     \item Uses default and shifted training sets in the optimization objective.
+%     \item Adds extra penalty emphasis on severe shifted cases and false deployments.
+%     \item Uses multistart local refinement after global search.
+%     \item Advantage:
+%     \begin{itemize}
+%       \item directly addresses distribution shift
+%       \item can reduce some tail-risk metrics
+%     \end{itemize}
+%     \item Limitation observed here:
+%     \begin{itemize}
+%       \item did not beat the original robust optimizer on final shifted objective
+%     \end{itemize}
+%   \end{itemize}
+
+%   \vspace{0.3em}
+%   \begin{block}{Shift-aware objective idea}
+%     \[
+%     J_{\mathrm{shift}}(x)
+%     =
+%     \alpha J_{\mathrm{default}}(x)
+%     + \beta J_{\mathrm{shifted}}(x)
+%     + \gamma \max\!\left(J_{\mathrm{default}}(x), J_{\mathrm{shifted}}(x)\right)
+%     \]
+%   \end{block}
+% \end{frame}
+
+\begin{frame}{Algorithm 6: Shift-Refined Local Search}
+  \small
+
+  \begin{itemize}
+    \item Starts from the already good Robust DE+SLSQP solution.
+    \item Samples a larger shifted Monte Carlo set.
+    \item Performs coordinate-pattern local search with progressively smaller step sizes.
+    \item Mathematical view:
+    \[
+    x_{\mathrm{ref}}
+    =
+    \arg\min_{x \in \mathcal{N}(x_{\mathrm{rob}})}
+    \frac{1}{|\mathcal{S}_{\mathrm{shift}}^{\mathrm{large}}|}
+    \sum_{\omega \in \mathcal{S}_{\mathrm{shift}}^{\mathrm{large}}} J(x;\omega)
+    \]
+    using coordinate updates
+    \[
+    x^{k+1} = x^k \pm \alpha_k e_j
+    \]
+    with shrinking step sizes \(\alpha_k\).
+    \item Advantage:
+    \begin{itemize}
+      \item makes microscopic algorithm adjustments near a strong robust solution
+      \item improved both iid and shifted results in the final run
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Existing Algorithms and Novelty Opportunity}
+  \small
+  \begin{itemize}
+    \item We first implemented standard baselines: nominal local optimization, coarse global search, heuristic adaptive control, and robust stochastic optimization.
+    \item These existing algorithms established two things:
+    \begin{itemize}
+      \item nominal optimization alone was too weak under uncertainty
+      \item robust optimization helped a lot, but still left room under distribution shift
+    \end{itemize}
+    \item That gap revealed the novelty opportunity: improve shift robustness without discarding the strong robust baseline.
+    \item This led to one new algorithm:
+    \begin{itemize}
+      \item \textbf{Shift-Refined Local Search}: starts from the robust solution and performs fine local search on a larger shifted sample
+    \end{itemize}
+    \item So the novelty is not just adding another algorithm, but using the failure mode under shift to motivate targeted shifted-sample refinement.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why the Final Algorithm Was Added}
+  \small
+  \begin{itemize}
+    \item The original robust optimizer already performed well under shift.
+    \item A stronger algorithm was needed without overwriting the baseline robust result.
+    \item The final added algorithm keeps the robust solution as a seed, then searches nearby points using a larger shifted scenario pool.
+    \item This gives:
+    \begin{itemize}
+      \item better shifted objective
+      \item lower shifted mean HIC
+      \item lower shifted failure rate
+      \item slightly improved iid results as well
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}{Results: In-Distribution Evaluation}
+  \begin{table}
+    \centering
+    \scriptsize
+    \begin{tabular}{lrrrr}
+      \toprule
+      Algorithm & Objective & Mean HIC & CVaR90 & Fail Rate \\
+      \midrule
+      Initial Design & 0.431 & 259.89 & 811.40 & 16.00\% \\
+      Deterministic SQP & 0.431 & 259.85 & 811.40 & 16.00\% \\
+      Grid Search & 0.379 & 249.09 & 752.15 & 14.33\% \\
+      MPC-Inspired Policy & 0.415 & 247.59 & 751.79 & 12.67\% \\
+      Robust DE+SLSQP & 0.356 & 230.41 & 706.29 & 11.67\% \\
+      Shift-Refined Local Search & 0.353 & 226.52 & 691.21 & 11.00\% \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.3em}
+  \begin{block}{Definition of fail rate}
+    Fail rate is the percentage of evaluation scenarios whose HIC exceeds the chosen safety threshold.
+  \end{block}
+
+  \vspace{0.3em}
+  \begin{block}{Best iid algorithm}
+    Shift-Refined Local Search achieved the best objective and the lowest failure rate on the default distribution.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results: Shifted Evaluation}
+  \begin{table}
+    \centering
+    \scriptsize
+    \begin{tabular}{lrrrr}
+      \toprule
+      Algorithm & Objective & Mean HIC & CVaR90 & Fail Rate \\
+      \midrule
+      Initial Design & 0.892 & 444.16 & 1312.55 & 32.00\% \\
+      Deterministic SQP & 0.891 & 443.96 & 1311.02 & 32.00\% \\
+      Grid Search & 0.738 & 401.87 & 1153.82 & 28.67\% \\
+      MPC-Inspired Policy & 0.767 & 412.99 & 1189.62 & 27.33\% \\
+      Robust DE+SLSQP & 0.589 & 377.17 & 1144.52 & 21.00\% \\
+      Shift-Refined Local Search & 0.579 & 372.21 & 1142.55 & 20.33\% \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.3em}
+  \begin{block}{Best shifted algorithm}
+    Shift-Refined Local Search gave the best shifted objective and improved over Robust DE+SLSQP on mean HIC and failure rate.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Best Algorithms from the Final Run}
+  \begin{table}
+    \centering
+    \small
+    \begin{tabular}{lrrrrr}
+      \toprule
+      Algorithm & Delay & Early & Mid & Late & Vent \\
+      \midrule
+      Initial Design & 18.00 & 220.00 & 190.00 & 140.00 & 18.00 \\
+      Grid Search & 16.00 & 300.00 & 300.00 & 100.00 & 4.00 \\
+      Robust DE+SLSQP & 25.89 & 299.16 & 286.95 & 102.73 & 4.41 \\
+      Shift-Refined Local Search & 25.39 & 300.00 & 300.00 & 120.73 & 4.00 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Stronger algorithms consistently prefer high early and mid pressures.
+    \item Best fixed algorithms also push the vent rate close to its lower bound.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Comparison Plot: Algorithm Metrics}
+  \centering
+  \includegraphics[width=0.8\textwidth]{outputs/03_domain_shift_run/02_shifted_method_comparison.png}
+\end{frame}
+
+\begin{frame}{Comparison Plot: Distribution Spread}
+  \centering
+  \includegraphics[width=1\textwidth]{outputs/03_domain_shift_run/02_shifted_method_boxplots.png}
+\end{frame}
+
+\begin{frame}{Comparison Plot: Trade-Off Map}
+  \centering
+  \includegraphics[width=0.7\textwidth]{outputs/03_domain_shift_run/02_shifted_tradeoff_map.png}
+\end{frame}
+
+\begin{frame}{Comparison Plot: Speed vs HIC}
+  \centering
+  \includegraphics[width=0.4\textwidth]{outputs/03_domain_shift_run/02_shifted_speed_hic_panels.png}
+\end{frame}
+
+\begin{frame}{Representative Simulation Trace}
+  \centering
+  \includegraphics[width=0.6\textwidth]{outputs/03_domain_shift_run/02_shifted_robust_trace.png}
+\end{frame}
+
+\section{Observations and Conclusion}
+
+\begin{frame}{Key Observations}
+  \begin{enumerate}
+    \item Deterministic SQP is almost identical to the initial design, so nominal optimization alone is not enough.
+    \item Grid Search is a strong baseline, showing that simple search can already find good high-pressure / low-vent algorithms.
+    \item Robust DE+SLSQP gives a large improvement over the initial design under both iid and shifted testing.
+    \item The final shift-refined local-search algorithm gave the best overall performance, especially on shifted evaluation.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Conclusions}
+  \begin{itemize}
+    \item We built an end-to-end stochastic airbag optimization framework from the project brief.
+    \item The framework includes scenario generation, reduced-order crash simulation, multiple optimization baselines, and automated reporting.
+    \item Distribution shift matters: algorithms must be tested beyond the default training distribution.
+    \item Robust DE+SLSQP is a strong baseline, but local refinement on a larger shifted sample improved it further.
+    \item Final best algorithm: \textbf{Shift-Refined Local Search}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Future Work}
+  \begin{itemize}
+    \item Improve physical fidelity beyond the reduced-order model.
+    \item Perform ablation studies on shifted-sample size and objective weights.
+    \item Develop a stronger adaptive controller than the current MPC-inspired heuristic.
+    \item Extend the analysis to richer occupant classes and crash geometries.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \Huge Thank You
+\end{frame}
+
+\section{Appendix}
+
+\begin{frame}{How Each Objective Term Is Calculated}
+  \scriptsize
+  \begin{itemize}
+    \item \textbf{Mean HIC, \(\mathbb{E}[\mathrm{HIC}]\)}:
+    \[
+    \mathrm{HIC}=\max_{t_2-t_1 \le 36\text{ ms}}
+    \left[
+    (t_2-t_1)
+    \left(
+    \frac{1}{t_2-t_1}\int_{t_1}^{t_2} a(t)\,dt
+    \right)^{2.5}
+    \right]
+    \]
+    \[
+    \mathbb{E}[\mathrm{HIC}] \approx \frac{1}{N}\sum_{i=1}^{N}\mathrm{HIC}_i
+    \]
+
+    \item \textbf{Mean chest deflection, \(\mathbb{E}[D_{\text{chest}}]\)}:
+    \begin{itemize}
+      \item Belt force, torso airbag force, and hard-stop force drive a chest-deflection state.
+    \end{itemize}
+
+    \[
+    D_i = \max_t d_i(t)
+    \qquad
+    \mathbb{E}[D_{\text{chest}}] \approx \frac{1}{N}\sum_{i=1}^{N} D_i
+    \]
+    where \(d_i(t)\) is the chest-deflection trace for scenario \(i\).
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{How Each Objective Term Is Calculated}
+  \scriptsize
+  \begin{itemize}
+    \item \textbf{Mean deployment energy, \(\mathbb{E}[E_{\text{deploy}}]\)}:
+    \begin{itemize}
+        \item At each timestep, the model estimates inflator energy from pressure rise and vent loss.
+    \end{itemize}
+    \[
+    E_i = \int_0^T \dot{E}_i(t)\,dt
+    \qquad
+    \mathbb{E}[E_{\text{deploy}}] \approx \frac{1}{N}\sum_{i=1}^{N} E_i
+    \]
+
+    \item \textbf{Tail risk, \(\mathrm{CVaR}_{90}(\mathrm{HIC})\)}:
+    \[
+    q_{0.9} = \mathrm{Quantile}_{0.9}(\mathrm{HIC})
+    \]
+    \[
+    \mathrm{CVaR}_{90}(\mathrm{HIC})
+    =
+    \mathbb{E}[\mathrm{HIC}\mid \mathrm{HIC}\ge q_{0.9}]
+    \]
+  \end{itemize}
+\end{frame}
+
+
+
+\end{document}

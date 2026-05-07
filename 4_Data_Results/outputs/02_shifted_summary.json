@@ -1,0 +1,28 @@
+{
+  "label": "Distribution-Shift Evaluation",
+  "best_method": "Shift-Refined Local Search",
+  "robust_vs_initial": {
+    "method": "Robust DE+SLSQP",
+    "hic_mean_percent": 15.083749976816568,
+    "hic_cvar90_percent": 12.801619057137088,
+    "chest_mean_percent": 0.4550341932135841,
+    "failure_rate_percent": 34.37500000000001,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_robust_vs_initial": {
+    "method": "Shift-Robust DRO",
+    "hic_mean_percent": 12.892577277455453,
+    "hic_cvar90_percent": 14.168527706039885,
+    "chest_mean_percent": 0.9417188730030841,
+    "failure_rate_percent": 21.875000000000004,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_refined_vs_initial": {
+    "method": "Shift-Refined Local Search",
+    "hic_mean_percent": 16.200119795672343,
+    "hic_cvar90_percent": 12.95122628264176,
+    "chest_mean_percent": -0.1484268309055587,
+    "failure_rate_percent": 36.45833333333333,
+    "false_deployment_rate_percent": 0.0
+  }
+}

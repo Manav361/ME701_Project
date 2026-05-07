@@ -1,0 +1,28 @@
+{
+  "label": "In-Distribution Evaluation",
+  "best_method": "Shift-Refined Local Search",
+  "robust_vs_initial": {
+    "method": "Robust DE+SLSQP",
+    "hic_mean_percent": 11.343026110042628,
+    "hic_cvar90_percent": 12.954082750119174,
+    "chest_mean_percent": 1.0350509460621538,
+    "failure_rate_percent": 27.083333333333336,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_robust_vs_initial": {
+    "method": "Shift-Robust DRO",
+    "hic_mean_percent": 8.226195713636262,
+    "hic_cvar90_percent": 11.953447544752065,
+    "chest_mean_percent": 1.3865258433295606,
+    "failure_rate_percent": 20.83333333333333,
+    "false_deployment_rate_percent": 0.0
+  },
+  "shift_refined_vs_initial": {
+    "method": "Shift-Refined Local Search",
+    "hic_mean_percent": 12.840879524916934,
+    "hic_cvar90_percent": 14.812682360320027,
+    "chest_mean_percent": 0.24213668574718553,
+    "failure_rate_percent": 31.25,
+    "false_deployment_rate_percent": 0.0
+  }
+}
