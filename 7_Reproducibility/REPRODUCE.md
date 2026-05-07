@@ -1,6 +1,5 @@
 # Reproduce Main Results
-
-Repository/archive link: to be added before submission if a GitHub or Zenodo archive is created.
+GitHub Link: https://github.com/Manav361/ME701_Project
 
 ## Environment
 

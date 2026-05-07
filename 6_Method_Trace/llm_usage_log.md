@@ -4,67 +4,8 @@ This file documents external assistance used in preparing the project package. T
 
 ## Summary
 
-An LLM assistant, ChatGPT Codex, was used to help organize the final submission package and improve documentation. The project idea, modeling work, code development, interpretation of results, and research direction were controlled by the project team. The LLM was used as a productivity tool for packaging, writing support text, and checking that the submission followed the required structure.
+An LLM assistant, ChatGPT Codex, was used for the coding part of project to help us assist writing some part of code to improve efficiency and productivity. The project idea, modeling work, code development, interpretation of results, and research direction were controlled by the team. The LLM was used as a productivity tool for packaging, writing support text, and checking that the submission followed the required structure.
 
-## LLM Assistance Used
-
-### 1. Submission Folder Organization
-
-**Task:** Create the required submission structure:
-
-```text
-1_Report/
-2_Presentation/
-3_Code/
-4_Data_Results/
-5_Literature/
-6_Method_Trace/
-7_Reproducibility/
-README.md
-```
-
-**LLM role:** Helped arrange existing files into the required structure and remove unnecessary cache files.
-
-**Human verification:** The final folder structure was checked manually against the course instructions.
-
-### 2. README and Reproducibility Documentation
-
-**Task:** Draft and improve:
-
-- top-level `README.md`
-- `3_Code/run_instructions.md`
-- `7_Reproducibility/REPRODUCE.md`
-
-**LLM role:** Helped write clear instructions for running the code and locating main results.
-
-**Human verification:** Commands and paths were matched against the actual packaged folder layout.
-
-### 3. Report Drafting and Formatting
-
-**Task:** Prepare an IEEE-style report source and PDF with required sections:
-
-- problem formulation
-- mathematical model
-- methodology and justification
-- results and discussion
-- limitations
-
-**LLM role:** Helped convert existing project results and code structure into a report draft.
-
-**Human verification:** Numerical claims were checked against the generated output files:
-
-- `4_Data_Results/outputs/00_summary.json`
-- `4_Data_Results/outputs/01_iid_comparison_table.md`
-- `4_Data_Results/outputs/02_shifted_comparison_table.md`
-- `4_Data_Results/outputs/02_shifted_design_table.md`
-
-### 4. Method Trace Documentation
-
-**Task:** Expand design-decision, failed-attempt, and tool-usage logs.
-
-**LLM role:** Helped structure the trace into auditable sections with rationale, evidence, and file references.
-
-**Human verification:** The trace was based on the actual code modules and final output bundle.
 
 ## Tools and Software Used
 
